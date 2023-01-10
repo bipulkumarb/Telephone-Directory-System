@@ -1,0 +1,281 @@
+#include<fstream.h>
+#include<iostream.h>
+#include<iomanip.h>
+#include<conio.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<graphics.h>
+void init_graph(int x1,int y1,int x2,int y2);
+void menu();
+void add_record();
+void enquiry_phno();
+void enquiry_name();
+void bills();
+void delete_record();
+int choice;
+
+////////////////////////////////class TPHONE///////////////////
+class TPhone
+{
+public:
+char phno[10],cust_name[30],address[40];
+int callno,dd,mm,yy,tc,mc,amt,tax,net_amt,due_amt,due_dd,due_mm;
+};
+
+TPhone tp;
+
+/////////////////////////////////////////// MAIN()//////////////////////////
+void main()
+{
+clrscr();
+init_graph(50,400,580,40);
+gotoxy(16,4);cout<<"T E L E P H O N E   D I R E C T O R Y  S Y S T E M";
+gotoxy(16,6);cout<<"---------------------------------------------------";
+gotoxy(16,8);cout<<"        T E L E P H O N E   E N Q U I R Y";
+gotoxy(16,10);cout<<"                       &";
+gotoxy(16,12);cout<<"       T E L E P H O N E   B I L  I N G";
+gotoxy(18,24);cout<<"          Press space to continue...";
+
+getch();
+closegraph();
+menu();
+getch();
+
+}
+
+//////////////////////////////INIT_GRAPH////////////////////////////////////
+void init_graph(int x1,int y1,int x2,int y2)
+{
+int driver,mode;
+driver=DETECT;
+initgraph(&driver,&mode,"d:\\tc\\bgi");
+setcolor(GREEN);
+setlinestyle(SOLID_LINE,0,THICK_WIDTH);
+rectangle(x1,y1,x2,y2);
+}
+///////////////////////////////MENU//////////////////////////////////////////
+void menu()
+{
+init_graph(10,475,630,10);
+gotoxy(30,3);cout<<"OPTION AVAILABLE ARE";
+gotoxy(30,4);cout<<"---------------------";
+gotoxy(15,7);cout<<"1. Add Records";
+gotoxy(15,8);cout<<"2. Get enquiry from telephone number";
+gotoxy(15,9);cout<<"3. Get enquiry from customer name";
+gotoxy(15,10);cout<<"4. Bills";
+gotoxy(15,11);cout<<"5. Delete";
+gotoxy(15,12);cout<<"6. Exit\n\n";
+gotoxy(15,15);cout<<"Enter your choice(1,2....6):";
+cin>>choice;
+switch(choice)
+{
+case 1: closegraph();clrscr();
+				add_record();break;
+case 2:	closegraph();clrscr();
+				enquiry_phno();break;
+case 3:	closegraph();clrscr();
+				enquiry_name();break;
+case 4: closegraph();clrscr();
+				bills();break;
+case 5: closegraph();
+				delete_record();break;
+default:exit(1);
+}
+cout<<"\n\nPress any key to open menu...";
+getch();
+clrscr();
+menu();
+}
+
+////////////////////////////////TPhone::add_record()/////////////////////////
+void add_record()
+{
+ofstream ofs;
+char ans='y';
+do
+{
+ofs.open("tphone.dat",ios::app);
+cout<<"\n\nENTER FOLLOWING DETAILS         ->";
+cout<<"\n\tTelephone number               : ";gets(tp.phno);
+cout<<"\n\tName of the customer           : ";gets(tp.cust_name);
+cout<<"\n\tAddress                        : ";gets(tp.address);
+cout<<"\n\tHow many call                  : ";cin>>tp.callno;
+cout<<"\n\tDate of bill issue(dd mm yy)   : ";cin>>tp.dd>>tp.mm>>tp.yy;
+cout<<"\n\tTruncall charges               : ";cin>>tp.tc;
+cout<<"\n\tMiscellenous charges           : ";cin>>tp.mc;
+
+if(tp.callno<=250)
+tp.amt=(tp.callno*1)+tp.mc+tp.tc;
+else
+tp.amt=(250*1)+((tp.callno-250)*1.20)+tp.mc+tp.tc;
+tp.tax=(tp.amt*.1); // 10 % of bill amount
+tp.net_amt=tp.amt+tp.tax;
+int xx;
+xx=(tp.net_amt*3)/100;
+tp.due_amt=tp.net_amt+xx;
+if(tp.dd<=5) // due date is 25 days ahead of bill date
+{
+tp.due_mm=tp.mm;
+tp.due_dd=tp.dd+25;
+}
+else
+{
+tp.due_dd=(tp.dd+25)-30;
+tp.due_mm=tp.mm+1;
+}
+ofs.write((char*)&tp,sizeof(tp));
+ofs.close();
+cout<<"\n1 record added successfully...\n";
+cout<<"Do you want to add more record(y/n):";
+cin>>ans;
+clrscr();
+}
+while(ans=='y'||ans=='Y');
+}
+
+//////////////////////////////////ENQUIRY_PHNO//////////////////////////////
+void enquiry_phno()
+{
+char ph[10];
+ifstream ifs;
+int flag=0;
+ifs.open("tphone.dat");
+//if(ifs.fail())
+//cout<<"ERROR";
+cout<<"\nEnter phone number to find :";cin>>ph;
+ifs.read((char*)&tp,sizeof(tp));
+while(!ifs.eof())
+{
+if(strcmp(tp.phno,ph)==0)
+{
+cout<<"\n\n\t Phone No.       :"<<tp.phno;
+cout<<"\n\t Customer name   :"<<tp.cust_name;
+cout<<"\n\t Address         :"<<tp.address;
+flag++;
+}
+else
+flag=flag+0;
+ifs.read((char*)&tp,sizeof(tp));
+}//while
+if(flag==0)
+cout<<"\n\nPhone no. [ "<<ph<<" ] not found.";
+ifs.close();
+getch();
+}
+
+//////////////////////////////////////////////////////////////
+void enquiry_name()
+{
+char name[10];
+ifstream ifs;
+int flag=0;
+ifs.open("tphone.dat");
+cout<<"Enter customer name to find :";gets(name);
+ifs.read((char*)&tp,sizeof(tp));
+while(!ifs.eof())
+{
+if(strcmp(tp.cust_name,name)==0)
+{
+flag++;
+cout<<"\nRecord  #"<<flag;
+cout<<"\n------------";
+cout<<"\n\nPhone No.       :"<<tp.phno;
+cout<<"\nCustomer name   :"<<tp.cust_name;
+cout<<"\nAddress         :"<<tp.address;
+}
+else
+flag=flag+0;
+ifs.read((char*)&tp,sizeof(tp));
+}//while
+if(flag==0)
+cout<<"\n\nCstomer [ "<<name<<" ] not found.";
+else
+cout<<"\n\n"<<flag<<" record(s) found.";
+ifs.close();
+getch();
+}
+
+///////////////////////////////BILLS////////////////////////////////////////
+
+void bills()
+{
+ifstream ifs;
+int i=0;
+ifs.open("tphone.dat");
+ifs.read((char*)&tp,sizeof(tp));
+while(!ifs.eof())
+{
+i++;
+cout<<"\n\nBill No. #"<<i;
+cout<<"\n---------------------------------------";
+cout<<"\n\n\tCUSTOMER NAME             "<<tp.cust_name;
+cout<<"\n\tTELEPHONE NO.             "<<tp.phno;
+cout<<"\n\tBILL DATE                 "<<tp.dd<<"/ "<<tp.mm<<"/ "<<tp.yy;
+cout<<"\n\tDUE DATE                  "<<tp.due_dd<<"/ "<<tp.due_mm<<"/ "<<tp.yy;
+cout<<"\n\tMETERED CALL              "<<tp.callno;
+cout<<"\n\tMISCELLANIOUS CHARGES     "<<tp.mc;
+cout<<"\n\tTRUNCALL CHARGES          "<<tp.tc;
+cout<<"\n\tAMOUNT                    "<<tp.amt;
+cout<<"\n\tTAX                       "<<tp.tax;
+cout<<"\n\tTOTAL AMOUNT              "<<tp.net_amt;
+cout<<"\n\tAMOUNT AFTER DUE DATE     "<<tp.due_amt;
+cout<<"\n\nPress any key to continue...";
+ifs.read((char*)&tp,sizeof(tp));
+getch();
+clrscr();
+}
+ifs.close();
+}
+
+//////////////////////////////////////////DELETE_RECORD///////////
+void delete_record()
+{
+fstream fs,fstemp;
+char ph[10];
+int flag,cntdel=0;
+fs.open("tphone.dat",ios::in);
+if(fs.fail())
+{
+cout<<"\n\n File error for reading..........................\n\n";
+exit(0);
+}
+fstemp.open("temp.dat",ios::out);
+cout<<"\nEnter phone no. to be deletred: ";
+cin>>ph;
+fs.read((char*)&tp,sizeof(tp));
+while(!fs.eof())
+{
+//	cout<<"bbbb"<<tp.phno<<endl;
+	if(strcmp(tp.phno,ph)==0)
+	{
+	flag=1;
+	cntdel++;
+	}
+	else
+	fstemp.write((char*)&tp,sizeof(tp));
+	fs.read((char*)&tp,sizeof(tp));
+}
+fs.close();
+fstemp.close();
+if(flag==1)
+{
+cout<<"\nTelephone no. [ "<<ph<<" ] deleted successfully.";
+cntdel=0;
+}
+else
+cout<<"\nTelephone no. [ "<<ph<<" ] not found!!!";
+
+fstemp.open("temp.dat",ios::in);
+fs.open("tphone.dat",ios::out);
+fstemp.read((char*)&tp,sizeof(tp));
+while(!fstemp.eof())
+{
+fs.write((char*)&tp,sizeof(tp));
+fstemp.read((char*)&tp,sizeof(tp));
+}
+fstemp.close();
+fs.close();
+}
+
+/********************end***************************
